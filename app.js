@@ -1,3 +1,4 @@
+require("dotenv").config();
 const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
@@ -6,10 +7,15 @@ const logger = require('morgan');
 const cors = require('cors');
 
 const corsOptions = {
-  origin: '*',
+  origin: process.env.ORIGIN,
 };
 
-const registerRouter = require("./routes/register.route");
+const languageRouter = require("./routes/language.route");
+const booksRouter = require("./routes/books.route");
+const brandingRouter = require("./routes/branding.route");
+const loginRouter = require("./routes/login.route");
+const countRouter = require("./routes/count.route");
+const tokenService = require("./services/token.service");
 
 const app = express();
 
@@ -25,8 +31,33 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+
+app.use('/login', loginRouter);
+app.use('/count', countRouter);
+
+// apply middleware for secure apis
+app.use(async(req,res,next)=>{
+  if(req.method === "GET"){
+    next()
+  }
+  else if(req.method === "POST" || req.method === "PUT" || req.method === "DELETE"){
+    try{
+      const isVerified = await tokenService.verifyToken(req,res);
+      if(isVerified){
+        next();
+      }
+    }catch(err){
+      return res.status(401).send('Authorization header missing');
+    }
+  }else{
+    return res.status(401).send('Method not allowed !');
+  }
+});
+
 // route level m
-app.use('/register', registerRouter);
+app.use('/language', languageRouter);
+app.use('/books', booksRouter);
+app.use('/branding', brandingRouter);
 
 //http://localhost/register
 

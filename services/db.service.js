@@ -1,11 +1,24 @@
+require("dotenv").config();
 const mongo = require("mongoose");
 
-const url = "mongodb+srv://justforcodeservice:Just786088@cluster0.nnmcl37.mongodb.net/r-crud";
+const url = process.env.DBCLOUDURL;
+
+//const url = process.env.DATABASEURL;
 
 mongo.connect(url);
 
 const readRecord = async (schema) =>{
     const dbRes = await schema.find().sort({_id:-1});
+    return dbRes;
+}
+
+const readCountRecord = async (schema) =>{
+    const dbRes = await schema.countDocuments();
+    return dbRes;
+}
+
+const readLimitedRecord = async (schema,skip,limit) =>{
+    const dbRes = await schema.find().skip(skip).limit(limit).sort({_id:-1});
     return dbRes;
 }
 
@@ -24,9 +37,17 @@ const removeRecord = async (id,schema) =>{
     return dbRes;
 }
 
+const findByQuery = async (query,schema) =>{
+    const dbRes = await schema.find(query);
+    return dbRes;
+}
+
 module.exports = {
     readRecord,
     createRecord,
     updateRecord,
-    removeRecord
+    removeRecord,
+    findByQuery,
+    readLimitedRecord,
+    readCountRecord
 }

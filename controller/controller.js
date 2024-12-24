@@ -12,6 +12,33 @@ const read = async (req,res,schema) =>{
     }
 }
 
+const readDocument = async (req,res,schema) =>{
+    try{
+        const dbRes = await dbService.readCountRecord(schema);
+        res.status(200).json(dbRes);
+    }catch(err){
+        res.status(424).json({
+            message : 'Unable to get data !',
+            error : err
+        })
+    }
+}
+
+const readLimited = async (req,res,schema) =>{
+    try{
+        const limit = parseInt(req.query.limit) || 10; // Default limit to 10
+        const page = parseInt(req.query.page) || 1;   // Default to first page
+        const skip = (page - 1) * limit;
+        const dbRes = await dbService.readLimitedRecord(schema,skip,limit);
+        res.status(200).json(dbRes);
+    }catch(err){
+        res.status(424).json({
+            message : 'Unable to get data !',
+            error : err
+        })
+    }
+}
+
 const create = async (req,res,schema) =>{
     try{
         const data = req.body;
@@ -61,9 +88,30 @@ const remove = async (req,res,schema) =>{
     }
 }
 
+const filterByQuery = async (req,res,schema) =>{
+    try{
+        const lang = req.params.query;
+        const query = {
+            language : lang
+        }
+        const dbRes = await dbService.findByQuery(query,schema);
+        res.status(200).json({
+            data : dbRes
+        });
+    }catch(err){
+        res.status(424).json({
+            message : 'Unable to find by data !',
+            error : err
+        })
+    }
+}
+
 module.exports = {
     read,
     create,
     update,
-    remove
+    remove,
+    readLimited,
+    readDocument,
+    filterByQuery
 }
